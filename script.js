@@ -324,10 +324,92 @@ programs.push(
   ),
 );
 
+const metaLabels = {
+  type: {
+    "undergraduate-dual": "本科双证",
+    bsms: "本硕连读",
+    "joint-master": "联合硕士",
+    "jd-combo": "JD 复合",
+    "md-combo": "MD/MPH",
+    "professional-dual": "专业双学位",
+  },
+  region: {
+    china: "中国大陆",
+    hkmo: "港澳合作",
+    usa: "美国",
+    europe: "欧洲",
+    singapore: "新加坡",
+  },
+  duration: {
+    "4y": "4 年",
+    "5y": "5 年",
+    "2y": "2 年",
+    "3plus2": "3+2",
+    flex: "弹性",
+  },
+  sourceKind: {
+    official: "学校官网",
+    college: "学院页",
+    admission: "招生页",
+  },
+};
+
+function inferType(program) {
+  const text = `${program.id} ${program.title} ${program.credential}`.toLowerCase();
+  if (/jd/.test(text)) return "jd-combo";
+  if (/\bmd\b/.test(text)) return "md-combo";
+  if (/bs \+ ms|bs\/ms|bachelor|bsba|bshs|biology bs|本硕|accelerated/.test(text)) return "bsms";
+  if (/dku|nyu|bnbu|double degree|undergrad|本科|双证/.test(text)) return "undergraduate-dual";
+  if (/mba|mph|mpp|mpa|mfa|msi|msw|mha|mdiv|master|硕士/.test(text)) return "professional-dual";
+  return "joint-master";
+}
+
+function inferRegion(program) {
+  const text = `${program.schools} ${program.sourceName} ${program.sourceUrl}`.toLowerCase();
+  if (/singapore|nus/.test(text)) return "singapore";
+  if (/hong kong|hkbu|bnbu|uic|港/.test(text)) return "hkmo";
+  if (/duke kunshan|nyu shanghai|tianjin|fuzhou|china|中国|上海|昆山|天津/.test(text)) return "china";
+  if (/yale|harvard|stanford|emory|ucla|duke|nyu|mit|columbia|berkeley|georgetown|michigan|penn|washington|cornell|purdue|northwestern|kent|miami|nebraska|seton hall|clark atlanta|drexel|virginia|boston|arizona|ohio|case western/.test(text)) return "usa";
+  return "europe";
+}
+
+function inferDuration(program) {
+  const text = `${program.id} ${program.title} ${program.credential} ${program.tags.join(" ")}`.toLowerCase();
+  if (/3\+2/.test(text)) return "3plus2";
+  if (/5|five|本硕|bs\/ms|bs \+ ms|bachelor|bsba|bshs|accelerated/.test(text)) return "5y";
+  if (/本科|undergrad|double degree/.test(text)) return "4y";
+  if (/mba|mph|mpp|mpa|master|硕士|ms /.test(text)) return "2y";
+  return "flex";
+}
+
+function inferSourceKind(program) {
+  const text = program.sourceUrl.toLowerCase();
+  if (/admission|apply|oam|undergraduate-programmes/.test(text)) return "admission";
+  if (/academics|degree|program|education|school|college|sph|law|medicine|sloan|haas|sipa|som/.test(text)) return "college";
+  return "official";
+}
+
+programs.forEach((program) => {
+  program.type = inferType(program);
+  program.region = inferRegion(program);
+  program.duration = inferDuration(program);
+  program.sourceKind = inferSourceKind(program);
+});
+
 const state = {
-  filters: { discipline: "all", workload: "all", budget: "all", difficulty: "all" },
+  filters: {
+    discipline: "all",
+    workload: "all",
+    budget: "all",
+    difficulty: "all",
+    type: "all",
+    region: "all",
+    duration: "all",
+    sourceKind: "all",
+  },
   weights: Object.fromEntries(dimensions.map((item) => [item.key, item.weight])),
   sort: "match",
+  view: "table",
   compare: ["duke-kunshan-undergrad", "mit-lgo", "nyu-jd-mpa"],
 };
 
@@ -625,12 +707,12 @@ function renderCompare() {
   $("#compareTable").innerHTML = header + rows;
 }
 
-function renderPrograms() {
-  const visible = visiblePrograms();
-  $("#resultCount").textContent = `找到 ${visible.length} 个项目`;
-  if (visible[0]) renderHeroBars(visible[0]);
+function metaText(program, key) {
+  return metaLabels[key][program[key]] || program[key];
+}
 
-  $("#programList").innerHTML = visible
+function renderCards(programsToRender) {
+  return programsToRender
     .map((program, index) => {
       const selected = state.compare.includes(program.id);
       return `
@@ -640,7 +722,13 @@ function renderPrograms() {
             <h3>${program.title}</h3>
             <p>${program.schools}</p>
             <p class="credential-line">${program.credential}</p>
-            <div class="tag-row">${program.tags.map((tag) => `<span class="tag">${tag}</span>`).join("")}</div>
+            <div class="tag-row">
+              <span class="tag tag-source">${metaText(program, "sourceKind")}</span>
+              <span class="tag">${metaText(program, "type")}</span>
+              <span class="tag">${metaText(program, "region")}</span>
+              <span class="tag">${metaText(program, "duration")}</span>
+              ${program.tags.map((tag) => `<span class="tag">${tag}</span>`).join("")}
+            </div>
           </div>
           <div>
             <span class="match-number">${weightedScore(program)}</span>
@@ -661,6 +749,56 @@ function renderPrograms() {
       `;
     })
     .join("");
+}
+
+function renderTable(programsToRender) {
+  return `
+    <div class="program-table" role="table" aria-label="项目数据库表格">
+      <div class="table-row table-head" role="row">
+        <span>项目</span>
+        <span>类型</span>
+        <span>地区</span>
+        <span>学制</span>
+        <span>来源</span>
+        <span>匹配</span>
+        <span>操作</span>
+      </div>
+      ${programsToRender
+        .map((program) => {
+          const selected = state.compare.includes(program.id);
+          return `
+            <article class="table-row" role="row">
+              <div class="table-project">
+                <strong>${program.title}</strong>
+                <span>${program.schools}</span>
+                <small>${program.credential}</small>
+              </div>
+              <span>${metaText(program, "type")}</span>
+              <span>${metaText(program, "region")}</span>
+              <span>${metaText(program, "duration")}</span>
+              <span class="source-chip">${metaText(program, "sourceKind")}</span>
+              <strong class="table-score">${weightedScore(program)}</strong>
+              <div class="table-actions">
+                <button type="button" class="${selected ? "selected" : ""}" data-toggle-compare="${program.id}">
+                  ${selected ? "已加入" : "对比"}
+                </button>
+                <a href="${program.sourceUrl}" target="_blank" rel="noreferrer">官网</a>
+              </div>
+            </article>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+}
+
+function renderPrograms() {
+  const visible = visiblePrograms();
+  $("#resultCount").textContent = `找到 ${visible.length} 个项目`;
+  if (visible[0]) renderHeroBars(visible[0]);
+
+  $("#programList").classList.toggle("table-mode", state.view === "table");
+  $("#programList").innerHTML = state.view === "table" ? renderTable(visible) : renderCards(visible);
 
   renderCompare();
 }
@@ -830,6 +968,68 @@ $(".segmented").addEventListener("click", (event) => {
   renderPrograms();
 });
 
+$(".view-toggle").addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-view]");
+  if (!button) return;
+  state.view = button.dataset.view;
+  $$(".view-toggle button").forEach((item) => item.classList.toggle("active", item === button));
+  renderPrograms();
+});
+
+function syncFilterControls() {
+  Object.entries(state.filters).forEach(([key, value]) => {
+    const control = $(`#filters [name="${key}"]`);
+    if (control) control.value = value;
+  });
+}
+
+function applyPersona(formData) {
+  const priority = formData.get("priority");
+  const major = formData.get("major");
+  const load = formData.get("load");
+  const budget = formData.get("budget");
+  const globalPath = formData.get("globalPath");
+  const majorDiscipline = {
+    cs: "engineering",
+    finance: "economics",
+    biology: "medicine",
+    design: "arts",
+    policy: "law",
+  };
+
+  state.weights = { workload: 16, value: 20, difficulty: 14, cost: 14, career: 24, fit: 12 };
+  if (priority === "career") Object.assign(state.weights, { career: 32, value: 20, fit: 14, cost: 10 });
+  if (priority === "research") Object.assign(state.weights, { value: 30, fit: 22, career: 18, cost: 8 });
+  if (priority === "global") Object.assign(state.weights, { value: 28, career: 24, difficulty: 12, cost: 8 });
+  if (priority === "cost") Object.assign(state.weights, { cost: 32, difficulty: 18, workload: 18, value: 14 });
+
+  state.filters = {
+    discipline: majorDiscipline[major] || "all",
+    workload: load === "high" ? "all" : load,
+    budget,
+    difficulty: "all",
+    type: priority === "research" ? "bsms" : "all",
+    region: globalPath === "yes" ? "all" : "china",
+    duration: "all",
+    sourceKind: "all",
+  };
+
+  careerState.major = major;
+  careerState.field = priority === "cost" ? "finance" : priority === "research" ? "medicine" : "finance";
+  renderWeights();
+  syncFilterControls();
+  renderCareerSwitches();
+  renderCareerGraph();
+  state.compare = visiblePrograms().slice(0, 3).map((program) => program.id);
+  renderPrograms();
+}
+
+$("#personaForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  applyPersona(new FormData(event.currentTarget));
+  showToast("已根据你的画像更新权重和推荐清单");
+});
+
 $("#majorSwitcher").addEventListener("click", (event) => {
   const button = event.target.closest("button[data-major]");
   if (!button) return;
@@ -900,10 +1100,20 @@ $("#saveSnapshot").addEventListener("click", () => {
 });
 
 $("#loadSample").addEventListener("click", () => {
-  state.filters = { discipline: "interdisciplinary", workload: "all", budget: "all", difficulty: "all" };
+  state.filters = {
+    discipline: "interdisciplinary",
+    workload: "all",
+    budget: "all",
+    difficulty: "all",
+    type: "undergraduate-dual",
+    region: "all",
+    duration: "all",
+    sourceKind: "all",
+  };
   state.compare = ["duke-kunshan-undergrad", "nyu-shanghai-undergrad", "nus-double-degree"];
   Object.entries(state.filters).forEach(([key, value]) => {
-    $(`[name="${key}"]`).value = value;
+    const control = $(`#filters [name="${key}"]`);
+    if (control) control.value = value;
   });
   renderPrograms();
   document.querySelector("#programs").scrollIntoView({ behavior: "smooth" });
