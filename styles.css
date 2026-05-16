@@ -219,7 +219,7 @@ a {
 .hero-copy {
   z-index: 2;
   align-self: center;
-  max-width: 640px;
+  max-width: 610px;
 }
 
 h1,
@@ -230,20 +230,37 @@ p {
 }
 
 h1 {
-  margin-bottom: 24px;
+  position: relative;
+  display: grid;
+  gap: 8px;
+  margin-bottom: 28px;
+  padding-bottom: 24px;
   font-family: "Songti SC", "STSong", "Times New Roman", serif;
-  font-size: clamp(3rem, 5.8vw, 5.75rem);
-  line-height: 1.06;
+  font-size: clamp(2.85rem, 5.1vw, 5.1rem);
+  line-height: 1.02;
   font-weight: 900;
   letter-spacing: 0;
-  text-wrap: balance;
+}
+
+h1::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: min(360px, 72%);
+  height: 3px;
+  background: linear-gradient(90deg, var(--teal-dark), var(--lime) 72%, transparent);
+}
+
+h1 span {
+  display: block;
 }
 
 .hero-copy p {
-  max-width: 670px;
-  margin-bottom: 28px;
+  max-width: 600px;
+  margin-bottom: 30px;
   color: #304144;
-  font-size: clamp(1.05rem, 1.5vw, 1.28rem);
+  font-size: clamp(1rem, 1.35vw, 1.16rem);
   line-height: 1.8;
 }
 
@@ -1128,8 +1145,10 @@ input[type="range"] {
   }
 
   h1 {
-    font-size: clamp(2.45rem, 13vw, 3.45rem);
-    line-height: 1.08;
+    gap: 6px;
+    padding-bottom: 18px;
+    font-size: clamp(2.35rem, 11.5vw, 3.15rem);
+    line-height: 1.06;
   }
 
   .hero-actions,
