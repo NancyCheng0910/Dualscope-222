@@ -170,7 +170,10 @@
               <option value="no">不优先</option>
             </select>
           </label>
-          <button class="button button-primary persona-button" type="submit">生成推荐</button>
+          <div class="form-actions persona-actions">
+            <button class="button button-primary persona-button" type="submit">生成推荐</button>
+            <button class="button button-secondary reset-button" type="button" id="resetPersona">取消画像</button>
+          </div>
         </form>
 
         <form class="filter-board" id="filters">
@@ -261,9 +264,13 @@
               <option value="official">学校官网</option>
               <option value="college">学院页</option>
               <option value="admission">招生页</option>
+              <option value="research">资料整理</option>
             </select>
           </label>
-          <button class="button button-primary apply-button" type="submit">应用筛选</button>
+          <div class="form-actions filter-actions">
+            <button class="button button-primary apply-button" type="submit">应用筛选</button>
+            <button class="button button-secondary reset-button" type="button" id="resetFilters">取消筛选</button>
+          </div>
         </form>
 
         <div class="tool-layout">

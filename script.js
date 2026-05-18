@@ -7,6 +7,25 @@ const dimensions = [
   { key: "fit", label: "个人兴趣", weight: 10 },
 ];
 
+const defaultCompare = ["duke-kunshan-undergrad", "mit-lgo", "nyu-jd-mpa"];
+
+function defaultFilters() {
+  return {
+    discipline: "all",
+    workload: "all",
+    budget: "all",
+    difficulty: "all",
+    type: "all",
+    region: "all",
+    duration: "all",
+    sourceKind: "all",
+  };
+}
+
+function defaultWeights() {
+  return Object.fromEntries(dimensions.map((item) => [item.key, item.weight]));
+}
+
 const programs = [
   {
     id: "duke-kunshan-undergrad",
@@ -32,7 +51,7 @@ const programs = [
     difficulty: "high",
     credential: "NYU 学位 + 中国认可学历/学位",
     sourceName: "NYU Shanghai",
-    sourceUrl: "https://shanghai.nyu.edu/academics",
+    sourceUrl: "https://shanghai.nyu.edu/undergraduate",
     tags: ["全球校区", "英文授课", "双证"],
     scores: { workload: 68, value: 90, difficulty: 58, cost: 45, career: 88, fit: 86 },
   },
@@ -46,7 +65,7 @@ const programs = [
     difficulty: "medium",
     credential: "BNBU 毕业证/学位 + HKBU 学位",
     sourceName: "BNBU",
-    sourceUrl: "https://uic.edu.cn/en/about_us/overview/introducing.htm",
+    sourceUrl: "https://bnbu.edu.cn/en/about_us/overview/introducing.htm",
     tags: ["内地港校", "博雅教育", "双证"],
     scores: { workload: 82, value: 82, difficulty: 74, cost: 70, career: 78, fit: 84 },
   },
@@ -60,7 +79,7 @@ const programs = [
     difficulty: "high",
     credential: "TJU 硕士 + NUS 硕士",
     sourceName: "TJU-NUS Fuzhou",
-    sourceUrl: "https://tfii.nus.edu.sg/",
+    sourceUrl: "https://nus.edu.sg/registrar/academic-information-policies/graduate/special-graduate-programmes",
     tags: ["工学", "联合学院", "双硕士"],
     scores: { workload: 58, value: 91, difficulty: 58, cost: 50, career: 86, fit: 76 },
   },
@@ -144,7 +163,7 @@ const programs = [
     difficulty: "medium",
     credential: "BSHS + MPH",
     sourceName: "Miami Public Health",
-    sourceUrl: "https://graduatestudies.publichealth.med.miami.edu/admissions/dual-degree-programs/bshs-mph/index.html",
+    sourceUrl: "https://bulletin.miami.edu/undergraduate-academic-programs/nursing-health-studies/health-science/bshs-mph-joint-degree/",
     tags: ["医学", "公共卫生", "加速项目"],
     scores: { workload: 72, value: 82, difficulty: 68, cost: 68, career: 84, fit: 80 },
   },
@@ -158,7 +177,7 @@ const programs = [
     difficulty: "medium",
     credential: "Biology BS + MPH",
     sourceName: "UNMC",
-    sourceUrl: "https://www.unmc.edu/publichealth/admissions/programs/dual-degree.html",
+    sourceUrl: "https://www.unmc.edu/publichealth/academics/programs/dual-degrees/index.html",
     tags: ["理学", "公共卫生", "本硕"],
     scores: { workload: 76, value: 78, difficulty: 72, cost: 84, career: 80, fit: 78 },
   },
@@ -200,7 +219,8 @@ const programs = [
     difficulty: "medium",
     credential: "BS + MS in Computer Science",
     sourceName: "Clark Atlanta",
-    sourceUrl: "https://www.cau.edu/school-of-arts-and-sciences/computer-science/",
+    sourceUrl: "",
+    sourceKind: "research",
     tags: ["工学", "计算机", "本硕"],
     scores: { workload: 76, value: 76, difficulty: 74, cost: 84, career: 86, fit: 78 },
   },
@@ -228,7 +248,7 @@ const programs = [
     difficulty: "medium",
     credential: "BSBA + Master's",
     sourceName: "Drexel LeBow",
-    sourceUrl: "https://www.lebow.drexel.edu/academics/undergraduate/degrees-and-programs/accelerated-dual-degrees",
+    sourceUrl: "https://www.lebow.drexel.edu/academics/undergraduate/degrees-programs/accelerated-dual-degrees",
     tags: ["经济学", "商科", "加速双学位"],
     scores: { workload: 76, value: 78, difficulty: 74, cost: 72, career: 84, fit: 76 },
   },
@@ -249,53 +269,53 @@ const programs = [
 ];
 
 const catalogRows = [
-  ["purdue-cs-bsms", "计算机科学本硕连读", "Purdue University", "engineering", "medium", "low", "medium", "BS + MS in Computer Science", "Purdue CS", "https://www.cs.purdue.edu/undergraduate/curriculum/bs-ms-program.html", ["工学", "计算机", "本硕"], [76, 82, 70, 86, 88, 78]],
-  ["ucsb-cs-bsms", "计算机科学五年本硕", "UC Santa Barbara", "engineering", "medium", "medium", "high", "BS/MS in Computer Science", "UCSB CS", "https://cs.ucsb.edu/education/undergraduate/bsms", ["工学", "计算机", "5年制"], [72, 84, 62, 70, 88, 78]],
-  ["northwestern-cs-bsms", "计算机科学 BS/MS", "Northwestern University", "engineering", "medium", "high", "high", "BS + MS in Computer Science", "Northwestern CS", "https://www.mccormick.northwestern.edu/computer-science/academics/undergraduate/bs-ms-program/", ["工学", "计算机", "科研"], [72, 86, 60, 56, 88, 80]],
-  ["kent-cs-bsms", "计算机科学本硕联合学位", "Kent State University", "engineering", "medium", "low", "medium", "BS + MS in Computer Science", "Kent State", "https://www.kent.edu/cs/combined-bachelorsmasters-programs", ["工学", "计算机", "成本友好"], [78, 76, 72, 86, 82, 76]],
-  ["emory-mba-mph", "工商管理 × 公共卫生", "Emory University", "management", "high", "high", "high", "MBA + MPH", "Emory Rollins", "https://sph.emory.edu/academics/degree-programs/dual-degrees/index.html", ["管理学", "公共卫生", "医疗产业"], [58, 88, 58, 48, 90, 82]],
-  ["emory-mim-mph", "管理学硕士 × 公共卫生", "Emory University", "management", "medium", "high", "medium", "MSM + MPH", "Emory Rollins", "https://sph.emory.edu/academics/degree-programs/dual-degrees/index.html", ["管理学", "公共卫生", "早期职业"], [72, 82, 68, 54, 84, 80]],
-  ["emory-md-mph", "医学博士 × 公共卫生", "Emory University", "medicine", "high", "high", "high", "MD + MPH", "Emory Rollins", "https://sph.emory.edu/academics/degree-programs/dual-degrees/index.html", ["医学", "公共卫生", "临床"], [52, 90, 50, 44, 88, 80]],
-  ["emory-msn-mph", "护理硕士 × 公共卫生", "Emory University", "medicine", "high", "medium", "medium", "MSN + MPH", "Emory Rollins", "https://sph.emory.edu/academics/degree-programs/dual-degrees/index.html", ["医学", "护理", "人群健康"], [64, 82, 66, 62, 84, 80]],
-  ["emory-jd-mph", "法学博士 × 公共卫生", "Emory University", "law", "high", "high", "high", "JD + MPH", "Emory Rollins", "https://sph.emory.edu/academics/degree-programs/dual-degrees/index.html", ["法学", "健康政策", "合规"], [56, 86, 54, 48, 84, 78]],
-  ["emory-mdiv-mph", "神学硕士 × 公共卫生", "Emory University", "philosophy", "medium", "medium", "medium", "MDiv + MPH", "Emory Rollins", "https://sph.emory.edu/academics/degree-programs/dual-degrees/index.html", ["哲学", "伦理", "社区健康"], [74, 76, 70, 60, 74, 82]],
-  ["emory-bioethics-mph", "生命伦理 × 公共卫生", "Emory University", "philosophy", "medium", "medium", "medium", "MA Bioethics + MPH", "Emory Rollins", "https://sph.emory.edu/academics/degree-programs/dual-degrees/index.html", ["哲学", "伦理", "健康政策"], [76, 80, 68, 60, 78, 84]],
-  ["wustl-mph-mba", "公共卫生 × 工商管理", "Washington University in St. Louis", "management", "high", "high", "high", "MPH + MBA", "WashU Public Health", "https://publichealth.wustl.edu/academics/dual-degrees/", ["管理学", "公共卫生", "医疗管理"], [58, 86, 58, 50, 88, 80]],
-  ["wustl-mph-jd", "公共卫生 × 法学博士", "Washington University in St. Louis", "law", "high", "high", "high", "MPH + JD", "WashU Public Health", "https://publichealth.wustl.edu/academics/dual-degrees/", ["法学", "公共卫生", "政策"], [56, 86, 56, 50, 84, 80]],
-  ["wustl-mph-msw", "公共卫生 × 社会工作", "Washington University in St. Louis", "law", "medium", "medium", "medium", "MPH + MSW", "WashU Public Health", "https://publichealth.wustl.edu/academics/dual-degrees/", ["法学", "社会服务", "人群健康"], [76, 80, 70, 62, 80, 84]],
-  ["stanford-md-mba", "医学博士 × 工商管理", "Stanford University", "medicine", "high", "high", "high", "MD + MBA", "Stanford Medicine", "https://med.stanford.edu/md/mdhandbook/section-4-academics/4-11-dual-degrees.html", ["医学", "管理学", "医疗创新"], [50, 94, 46, 40, 94, 82]],
-  ["stanford-md-mph", "医学博士 × 公共卫生", "Stanford University", "medicine", "high", "high", "high", "MD + MPH", "Stanford Medicine", "https://med.stanford.edu/md/mdhandbook/section-4-academics/4-11-dual-degrees.html", ["医学", "公共卫生", "研究"], [52, 92, 48, 42, 88, 82]],
-  ["stanford-md-phd", "医学博士 × 博士", "Stanford University", "medicine", "high", "high", "high", "MD + PhD", "Stanford Medicine", "https://med.stanford.edu/md/mdhandbook/section-4-academics/4-11-dual-degrees.html", ["医学", "科研", "长周期"], [40, 96, 42, 44, 90, 78]],
-  ["uva-mba-mph", "工商管理 × 公共卫生", "University of Virginia", "management", "high", "high", "high", "MBA + MPH", "UVA Public Health Sciences", "https://med.virginia.edu/phs/education/mph-program/dual-degree-programs/", ["管理学", "公共卫生", "医疗管理"], [60, 84, 60, 52, 86, 78]],
-  ["uva-mph-mpp", "公共卫生 × 公共政策", "University of Virginia", "law", "medium", "medium", "medium", "MPH + MPP", "UVA Public Health Sciences", "https://med.virginia.edu/phs/education/mph-program/dual-degree-programs/", ["法学", "政策分析", "健康治理"], [76, 80, 68, 60, 80, 82]],
-  ["bu-mba-mph", "工商管理 × 公共卫生", "Boston University", "management", "high", "high", "medium", "MBA + MPH", "Boston University", "https://www.bu.edu/questrom/degree-programs/full-time-mba/health-sector-mba/mba-mph/", ["管理学", "公共卫生", "健康产业"], [62, 84, 64, 52, 86, 78]],
-  ["benedictine-mba-mph", "工商管理 × 公共卫生", "Benedictine University", "management", "medium", "medium", "medium", "MBA + MPH", "Benedictine", "https://online.ben.edu/programs/mba-mph-dual-degree", ["管理学", "公共卫生", "在线"], [78, 76, 74, 72, 80, 76]],
-  ["unmc-md-mph", "医学博士 × 公共卫生", "University of Nebraska Medical Center", "medicine", "high", "medium", "high", "MD + MPH", "UNMC", "https://www.unmc.edu/publichealth/admissions/programs/dual-degree.html", ["医学", "公共卫生", "临床"], [56, 82, 58, 68, 84, 78]],
-  ["unmc-mba-mph", "工商管理 × 公共卫生", "University of Nebraska Medical Center", "management", "medium", "low", "medium", "MBA + MPH", "UNMC", "https://www.unmc.edu/publichealth/admissions/programs/dual-degree.html", ["管理学", "公共卫生", "成本友好"], [76, 78, 70, 82, 82, 76]],
-  ["case-mba-mph", "工商管理 × 公共卫生", "Case Western Reserve University", "management", "high", "high", "medium", "MBA + MPH", "Case Western Reserve", "https://case.edu/medicine/publichealth/education/master-public-health/dual-degree-programs", ["管理学", "公共卫生", "城市健康"], [64, 82, 66, 56, 84, 78]],
-  ["arizona-mph-mba", "公共卫生 × 工商管理", "University of Arizona", "management", "medium", "medium", "medium", "MPH + MBA", "University of Arizona", "https://publichealth.arizona.edu/academics/dual-degrees", ["管理学", "公共卫生", "西南地区"], [72, 80, 68, 66, 82, 78]],
-  ["drexel-accounting-ms", "会计本科 × 会计硕士", "Drexel University LeBow College of Business", "economics", "medium", "medium", "medium", "BSBA + MS Accounting", "Drexel LeBow", "https://www.lebow.drexel.edu/academics/undergraduate/degrees-and-programs/accelerated-dual-degrees", ["经济学", "会计", "加速双学位"], [78, 76, 72, 72, 82, 74]],
-  ["drexel-business-analytics-ms", "商科本科 × 商业分析硕士", "Drexel University LeBow College of Business", "economics", "medium", "medium", "medium", "BSBA + MS Business Analytics", "Drexel LeBow", "https://www.lebow.drexel.edu/academics/undergraduate/degrees-and-programs/accelerated-dual-degrees", ["经济学", "商业分析", "数据就业"], [76, 78, 72, 72, 86, 78]],
-  ["drexel-finance-ms", "商科本科 × 金融硕士", "Drexel University LeBow College of Business", "economics", "medium", "medium", "medium", "BSBA + MS Finance", "Drexel LeBow", "https://www.lebow.drexel.edu/academics/undergraduate/degrees-and-programs/accelerated-dual-degrees", ["经济学", "金融", "加速"], [76, 78, 72, 72, 84, 76]],
-  ["drexel-marketing-ms", "商科本科 × 市场营销硕士", "Drexel University LeBow College of Business", "economics", "medium", "medium", "medium", "BSBA + MS Marketing", "Drexel LeBow", "https://www.lebow.drexel.edu/academics/undergraduate/degrees-and-programs/accelerated-dual-degrees", ["经济学", "营销分析", "品牌增长"], [80, 74, 74, 72, 80, 78]],
-  ["yale-mba-mfa", "工商管理 × 艺术硕士", "Yale University", "arts", "high", "high", "high", "MBA + MFA", "Yale SOM", "https://som.yale.edu/programs/mba/joint-degrees", ["艺术学", "管理学", "创意产业"], [58, 88, 58, 46, 82, 88]],
-  ["yale-mba-environment", "工商管理 × 环境管理", "Yale University", "management", "high", "high", "high", "MBA + Master of Environmental Management", "Yale SOM", "https://som.yale.edu/programs/mba/joint-degrees", ["管理学", "环境", "可持续商业"], [60, 88, 58, 46, 86, 82]],
-  ["yale-mba-divinity", "工商管理 × 神学", "Yale University", "philosophy", "high", "high", "high", "MBA + MDiv / MAR", "Yale SOM", "https://som.yale.edu/programs/mba/joint-degrees", ["哲学", "伦理", "非营利管理"], [62, 84, 60, 46, 76, 84]],
-  ["hks-mpp-mba", "公共政策 × 工商管理", "Harvard Kennedy School", "management", "high", "high", "high", "MPP/MPA + MBA", "Harvard Kennedy School", "https://www.hks.harvard.edu/educational-programs/masters-programs/concurrent-degrees", ["管理学", "公共政策", "领导力"], [56, 92, 50, 42, 90, 84]],
-  ["hks-mpp-jd", "公共政策 × 法学", "Harvard Kennedy School", "law", "high", "high", "high", "MPP/MPA + JD", "Harvard Kennedy School", "https://www.hks.harvard.edu/educational-programs/masters-programs/concurrent-degrees", ["法学", "公共政策", "治理"], [56, 92, 50, 42, 88, 84]],
-  ["hks-mpp-md", "公共政策 × 医学", "Harvard Kennedy School", "medicine", "high", "high", "high", "MPP/MPA + MD", "Harvard Kennedy School", "https://www.hks.harvard.edu/educational-programs/masters-programs/concurrent-degrees", ["医学", "公共政策", "健康治理"], [52, 92, 48, 42, 88, 82]],
-  ["columbia-sipa-dual", "国际公共事务双学位体系", "Columbia SIPA", "law", "high", "high", "high", "Dual Degree", "Columbia SIPA", "https://www.sipa.columbia.edu/academics/degree-programs/dual-degrees", ["法学", "国际事务", "政策"], [62, 88, 58, 48, 86, 82]],
-  ["columbia-sipa-journalism", "公共事务 × 新闻", "Columbia SIPA × Journalism School", "literature", "high", "high", "high", "MIA/MPA + MS Journalism", "Columbia SIPA", "https://www.sipa.columbia.edu/academics/degree-programs/dual-degrees", ["文学", "新闻", "国际传播"], [60, 86, 58, 48, 82, 86]],
-  ["berkeley-mba-mph", "工商管理 × 公共卫生", "UC Berkeley", "management", "high", "high", "high", "MBA + MPH", "Berkeley Haas", "https://mba.haas.berkeley.edu/academics/concurrent-degree-programs/mba-mph", ["管理学", "公共卫生", "湾区资源"], [58, 90, 54, 46, 90, 82]],
-  ["georgetown-msfs-mba", "外交服务 × 工商管理", "Georgetown University", "management", "high", "high", "high", "MSFS + MBA", "Georgetown SFS", "https://sfs.georgetown.edu/academics/graduate-programs/msfs/joint-degrees/", ["管理学", "国际关系", "全球商业"], [60, 86, 60, 50, 86, 82]],
-  ["georgetown-msfs-jd", "外交服务 × 法学", "Georgetown University", "law", "high", "high", "high", "MSFS + JD", "Georgetown SFS", "https://sfs.georgetown.edu/academics/graduate-programs/msfs/joint-degrees/", ["法学", "国际关系", "外交"], [58, 86, 58, 50, 84, 82]],
-  ["umich-mba-msi", "工商管理 × 信息科学", "University of Michigan", "management", "high", "high", "high", "MBA + MSI", "Michigan Ross", "https://michiganross.umich.edu/graduate/full-time-mba/dual-degrees", ["管理学", "信息科学", "产品战略"], [62, 88, 58, 50, 90, 84]],
-  ["umich-mba-msw", "工商管理 × 社会工作", "University of Michigan", "management", "high", "high", "medium", "MBA + MSW", "Michigan Ross", "https://michiganross.umich.edu/graduate/full-time-mba/dual-degrees", ["管理学", "社会创新", "公益组织"], [66, 82, 64, 50, 80, 84]],
-  ["penn-mba-ma-education", "工商管理 × 教育学", "University of Pennsylvania", "education", "high", "high", "high", "MBA + MA Education", "Wharton", "https://mba.wharton.upenn.edu/dual-degree-programs/", ["教育学", "管理学", "教育科技"], [60, 90, 54, 44, 86, 84]],
-  ["penn-mba-msw", "工商管理 × 社会政策", "University of Pennsylvania", "management", "high", "high", "high", "MBA + MSW", "Wharton", "https://mba.wharton.upenn.edu/dual-degree-programs/", ["管理学", "社会政策", "影响力投资"], [62, 86, 56, 44, 82, 84]],
+  ["purdue-cs-bsms", "计算机科学本硕连读", "Purdue University", "engineering", "medium", "low", "medium", "BS + MS in Computer Science", "Purdue CS", "https://www.cs.purdue.edu/undergraduate/curriculum/bs-ms.html", ["工学", "计算机", "本硕"], [76, 82, 70, 86, 88, 78]],
+  ["ucsb-cs-bsms", "计算机科学五年本硕", "UC Santa Barbara", "engineering", "medium", "medium", "high", "BS/MS in Computer Science", "UCSB CS", "https://cs.ucsb.edu/index.php/education/graduate/bs-ms", ["工学", "计算机", "5年制"], [72, 84, 62, 70, 88, 78]],
+  ["northwestern-cs-bsms", "计算机科学 BS/MS", "Northwestern University", "engineering", "medium", "high", "high", "BS + MS in Computer Science", "Northwestern CS", "https://www.mccormick.northwestern.edu/computer-science/academics/undergraduate/combined-bs-ba-ms-program.html", ["工学", "计算机", "科研"], [72, 86, 60, 56, 88, 80]],
+  ["kent-cs-bsms", "计算机科学本硕联合学位", "Kent State University", "engineering", "medium", "low", "medium", "BS + MS in Computer Science", "Kent State", "https://www.kent.edu/cs/combined-bsms-program", ["工学", "计算机", "成本友好"], [78, 76, 72, 86, 82, 76]],
+  ["emory-mba-mph", "工商管理 × 公共卫生", "Emory University", "management", "high", "high", "high", "MBA + MPH", "Emory Rollins", "https://sph.emory.edu/degrees-programs/dual-degrees", ["管理学", "公共卫生", "医疗产业"], [58, 88, 58, 48, 90, 82]],
+  ["emory-mim-mph", "管理学硕士 × 公共卫生", "Emory University", "management", "medium", "high", "medium", "MSM + MPH", "Emory Rollins", "https://sph.emory.edu/degrees-programs/dual-degrees", ["管理学", "公共卫生", "早期职业"], [72, 82, 68, 54, 84, 80]],
+  ["emory-md-mph", "医学博士 × 公共卫生", "Emory University", "medicine", "high", "high", "high", "MD + MPH", "Emory Rollins", "https://sph.emory.edu/degrees-programs/dual-degrees", ["医学", "公共卫生", "临床"], [52, 90, 50, 44, 88, 80]],
+  ["emory-msn-mph", "护理硕士 × 公共卫生", "Emory University", "medicine", "high", "medium", "medium", "MSN + MPH", "Emory Rollins", "https://sph.emory.edu/degrees-programs/dual-degrees", ["医学", "护理", "人群健康"], [64, 82, 66, 62, 84, 80]],
+  ["emory-jd-mph", "法学博士 × 公共卫生", "Emory University", "law", "high", "high", "high", "JD + MPH", "Emory Rollins", "https://sph.emory.edu/degrees-programs/dual-degrees", ["法学", "健康政策", "合规"], [56, 86, 54, 48, 84, 78]],
+  ["emory-mdiv-mph", "神学硕士 × 公共卫生", "Emory University", "philosophy", "medium", "medium", "medium", "MDiv + MPH", "Emory Rollins", "https://sph.emory.edu/degrees-programs/dual-degrees", ["哲学", "伦理", "社区健康"], [74, 76, 70, 60, 74, 82]],
+  ["emory-bioethics-mph", "生命伦理 × 公共卫生", "Emory University", "philosophy", "medium", "medium", "medium", "MA Bioethics + MPH", "Emory Rollins", "https://sph.emory.edu/degrees-programs/dual-degrees", ["哲学", "伦理", "健康政策"], [76, 80, 68, 60, 78, 84]],
+  ["wustl-mph-mba", "公共卫生 × 工商管理", "Washington University in St. Louis", "management", "high", "high", "high", "MPH + MBA", "WashU Public Health", "https://publichealth.washu.edu/education/dual-degrees/", ["管理学", "公共卫生", "医疗管理"], [58, 86, 58, 50, 88, 80]],
+  ["wustl-mph-jd", "公共卫生 × 法学博士", "Washington University in St. Louis", "law", "high", "high", "high", "MPH + JD", "WashU Public Health", "https://publichealth.washu.edu/education/dual-degrees/", ["法学", "公共卫生", "政策"], [56, 86, 56, 50, 84, 80]],
+  ["wustl-mph-msw", "公共卫生 × 社会工作", "Washington University in St. Louis", "law", "medium", "medium", "medium", "MPH + MSW", "WashU Public Health", "https://publichealth.washu.edu/education/dual-degrees/", ["法学", "社会服务", "人群健康"], [76, 80, 70, 62, 80, 84]],
+  ["stanford-md-mba", "医学博士 × 工商管理", "Stanford University", "medicine", "high", "high", "high", "MD + MBA", "Stanford Medicine", "https://www.med.stanford.edu/education/dual-degree-programs", ["医学", "管理学", "医疗创新"], [50, 94, 46, 40, 94, 82]],
+  ["stanford-md-mph", "医学博士 × 公共卫生", "Stanford University", "medicine", "high", "high", "high", "MD + MPH", "Stanford Medicine", "https://www.med.stanford.edu/education/dual-degree-programs", ["医学", "公共卫生", "研究"], [52, 92, 48, 42, 88, 82]],
+  ["stanford-md-phd", "医学博士 × 博士", "Stanford University", "medicine", "high", "high", "high", "MD + PhD", "Stanford Medicine", "https://www.med.stanford.edu/education/dual-degree-programs", ["医学", "科研", "长周期"], [40, 96, 42, 44, 90, 78]],
+  ["uva-mba-mph", "工商管理 × 公共卫生", "University of Virginia", "management", "high", "high", "high", "MBA + MPH", "UVA Public Health Sciences", "https://med.virginia.edu/phs/education-programs-in-public-health-sciences/dual-degrees/", ["管理学", "公共卫生", "医疗管理"], [60, 84, 60, 52, 86, 78]],
+  ["uva-mph-mpp", "公共卫生 × 公共政策", "University of Virginia", "law", "medium", "medium", "medium", "MPH + MPP", "UVA Public Health Sciences", "https://med.virginia.edu/phs/education-programs-in-public-health-sciences/dual-degrees/", ["法学", "政策分析", "健康治理"], [76, 80, 68, 60, 80, 82]],
+  ["bu-mba-mph", "工商管理 × 公共卫生", "Boston University", "management", "high", "high", "medium", "MBA + MPH", "Boston University", "https://www.bu.edu/questrom/graduate-programs/mba-programs/dual-degrees/health-sector-mba-mph/", ["管理学", "公共卫生", "健康产业"], [62, 84, 64, 52, 86, 78]],
+  ["benedictine-mba-mph", "工商管理 × 公共卫生", "Benedictine University", "management", "medium", "medium", "medium", "MBA + MPH", "Benedictine", "https://online.ben.edu/programs/dual-degrees/mba-mph/", ["管理学", "公共卫生", "在线"], [78, 76, 74, 72, 80, 76]],
+  ["unmc-md-mph", "医学博士 × 公共卫生", "University of Nebraska Medical Center", "medicine", "high", "medium", "high", "MD + MPH", "UNMC", "https://www.unmc.edu/publichealth/academics/programs/dual-degrees/index.html", ["医学", "公共卫生", "临床"], [56, 82, 58, 68, 84, 78]],
+  ["unmc-mba-mph", "工商管理 × 公共卫生", "University of Nebraska Medical Center", "management", "medium", "low", "medium", "MBA + MPH", "UNMC", "https://www.unmc.edu/publichealth/academics/programs/dual-degrees/index.html", ["管理学", "公共卫生", "成本友好"], [76, 78, 70, 82, 82, 76]],
+  ["case-mba-mph", "工商管理 × 公共卫生", "Case Western Reserve University", "management", "high", "high", "medium", "MBA + MPH", "Case Western Reserve", "https://case.edu/medicine/pqhs/education/public-health/master-public-health/dual-graduate-degrees", ["管理学", "公共卫生", "城市健康"], [64, 82, 66, 56, 84, 78]],
+  ["arizona-mph-mba", "公共卫生 × 工商管理", "University of Arizona", "management", "medium", "medium", "medium", "MPH + MBA", "University of Arizona", "https://publichealth.arizona.edu/programs/graduate/dual-degrees", ["管理学", "公共卫生", "西南地区"], [72, 80, 68, 66, 82, 78]],
+  ["drexel-accounting-ms", "会计本科 × 会计硕士", "Drexel University LeBow College of Business", "economics", "medium", "medium", "medium", "BSBA + MS Accounting", "Drexel LeBow", "https://www.lebow.drexel.edu/academics/undergraduate/degrees-programs/accelerated-dual-degrees", ["经济学", "会计", "加速双学位"], [78, 76, 72, 72, 82, 74]],
+  ["drexel-business-analytics-ms", "商科本科 × 商业分析硕士", "Drexel University LeBow College of Business", "economics", "medium", "medium", "medium", "BSBA + MS Business Analytics", "Drexel LeBow", "https://www.lebow.drexel.edu/academics/undergraduate/degrees-programs/accelerated-dual-degrees", ["经济学", "商业分析", "数据就业"], [76, 78, 72, 72, 86, 78]],
+  ["drexel-finance-ms", "商科本科 × 金融硕士", "Drexel University LeBow College of Business", "economics", "medium", "medium", "medium", "BSBA + MS Finance", "Drexel LeBow", "https://www.lebow.drexel.edu/academics/undergraduate/degrees-programs/accelerated-dual-degrees", ["经济学", "金融", "加速"], [76, 78, 72, 72, 84, 76]],
+  ["drexel-marketing-ms", "商科本科 × 市场营销硕士", "Drexel University LeBow College of Business", "economics", "medium", "medium", "medium", "BSBA + MS Marketing", "Drexel LeBow", "https://www.lebow.drexel.edu/academics/undergraduate/degrees-programs/accelerated-dual-degrees", ["经济学", "营销分析", "品牌增长"], [80, 74, 74, 72, 80, 78]],
+  ["yale-mba-mfa", "工商管理 × 艺术硕士", "Yale University", "arts", "high", "high", "high", "MBA + MFA", "Yale SOM", "https://som.yale.edu/programs/joint-degrees", ["艺术学", "管理学", "创意产业"], [58, 88, 58, 46, 82, 88]],
+  ["yale-mba-environment", "工商管理 × 环境管理", "Yale University", "management", "high", "high", "high", "MBA + Master of Environmental Management", "Yale SOM", "https://som.yale.edu/programs/joint-degrees", ["管理学", "环境", "可持续商业"], [60, 88, 58, 46, 86, 82]],
+  ["yale-mba-divinity", "工商管理 × 神学", "Yale University", "philosophy", "high", "high", "high", "MBA + MDiv / MAR", "Yale SOM", "https://som.yale.edu/programs/joint-degrees", ["哲学", "伦理", "非营利管理"], [62, 84, 60, 46, 76, 84]],
+  ["hks-mpp-mba", "公共政策 × 工商管理", "Harvard Kennedy School", "management", "high", "high", "high", "MPP/MPA + MBA", "Harvard Kennedy School", "https://www.hks.harvard.edu/educational-programs/masters-programs/combined-degrees", ["管理学", "公共政策", "领导力"], [56, 92, 50, 42, 90, 84]],
+  ["hks-mpp-jd", "公共政策 × 法学", "Harvard Kennedy School", "law", "high", "high", "high", "MPP/MPA + JD", "Harvard Kennedy School", "https://www.hks.harvard.edu/educational-programs/masters-programs/combined-degrees", ["法学", "公共政策", "治理"], [56, 92, 50, 42, 88, 84]],
+  ["hks-mpp-md", "公共政策 × 医学", "Harvard Kennedy School", "medicine", "high", "high", "high", "MPP/MPA + MD", "Harvard Kennedy School", "https://www.hks.harvard.edu/educational-programs/masters-programs/combined-degrees", ["医学", "公共政策", "健康治理"], [52, 92, 48, 42, 88, 82]],
+  ["columbia-sipa-dual", "国际公共事务双学位体系", "Columbia SIPA", "law", "high", "high", "high", "Dual Degree", "Columbia SIPA", "https://www.sipa.columbia.edu/sipa-education/dual-degree-programs", ["法学", "国际事务", "政策"], [62, 88, 58, 48, 86, 82]],
+  ["columbia-sipa-journalism", "公共事务 × 新闻", "Columbia SIPA × Journalism School", "literature", "high", "high", "high", "MIA/MPA + MS Journalism", "Columbia SIPA", "https://www.sipa.columbia.edu/sipa-education/dual-degree-programs/columbia-dual-degree-programs", ["文学", "新闻", "国际传播"], [60, 86, 58, 48, 82, 86]],
+  ["berkeley-mba-mph", "工商管理 × 公共卫生", "UC Berkeley", "management", "high", "high", "high", "MBA + MPH", "Berkeley Public Health", "https://publichealth.berkeley.edu/academics/programs/concurrent-mba-mph", ["管理学", "公共卫生", "湾区资源"], [58, 90, 54, 46, 90, 82]],
+  ["georgetown-msfs-mba", "外交服务 × 工商管理", "Georgetown University", "management", "high", "high", "high", "MSFS + MBA", "Georgetown SFS", "https://sfs.georgetown.edu/ms-foreign-service/academics/dualdegrees/", ["管理学", "国际关系", "全球商业"], [60, 86, 60, 50, 86, 82]],
+  ["georgetown-msfs-jd", "外交服务 × 法学", "Georgetown University", "law", "high", "high", "high", "MSFS + JD", "Georgetown SFS", "https://sfs.georgetown.edu/ms-foreign-service/academics/dualdegrees/", ["法学", "国际关系", "外交"], [58, 86, 58, 50, 84, 82]],
+  ["umich-mba-msi", "工商管理 × 信息科学", "University of Michigan", "management", "high", "high", "high", "MBA + MSI", "Michigan Ross", "https://michiganross.umich.edu/graduate/full-time-mba/curriculum/dual-degrees", ["管理学", "信息科学", "产品战略"], [62, 88, 58, 50, 90, 84]],
+  ["umich-mba-msw", "工商管理 × 社会工作", "University of Michigan", "management", "high", "high", "medium", "MBA + MSW", "Michigan Ross", "https://michiganross.umich.edu/graduate/full-time-mba/curriculum/dual-degrees", ["管理学", "社会创新", "公益组织"], [66, 82, 64, 50, 80, 84]],
+  ["penn-mba-ma-education", "工商管理 × 教育学", "University of Pennsylvania", "education", "high", "high", "high", "MBA + MA Education", "Wharton", "https://mba.wharton.upenn.edu/interdisciplinary-programs/", ["教育学", "管理学", "教育科技"], [60, 90, 54, 44, 86, 84]],
+  ["penn-mba-msw", "工商管理 × 社会政策", "University of Pennsylvania", "management", "high", "high", "high", "MBA + MSW", "Wharton", "https://mba.wharton.upenn.edu/interdisciplinary-programs/", ["管理学", "社会政策", "影响力投资"], [62, 86, 56, 44, 82, 84]],
   ["uw-mpa-mph", "公共管理 × 公共卫生", "University of Washington", "law", "medium", "medium", "medium", "MPA + MPH", "UW Evans", "https://evans.uw.edu/academic-programs/masters-degrees/concurrent-degrees/", ["法学", "公共管理", "健康政策"], [76, 80, 68, 64, 82, 82]],
   ["uw-mpa-jd", "公共管理 × 法学", "University of Washington", "law", "high", "medium", "high", "MPA + JD", "UW Evans", "https://evans.uw.edu/academic-programs/masters-degrees/concurrent-degrees/", ["法学", "公共管理", "治理"], [62, 82, 58, 62, 82, 80]],
-  ["cornell-mba-mha", "工商管理 × 医疗管理", "Cornell University", "management", "high", "high", "high", "MBA + MHA", "Cornell Johnson", "https://www.johnson.cornell.edu/programs/full-time-mba/two-year-mba/dual-degree-programs/", ["管理学", "医疗管理", "健康产业"], [60, 88, 58, 48, 90, 80]],
+  ["cornell-mba-mha", "工商管理 × 医疗管理", "Cornell University", "management", "high", "high", "high", "MBA + MHA", "Cornell Johnson", "https://www.johnson.cornell.edu/programs/full-time-mba/dual-degree-programs/md-mba/", ["管理学", "医疗管理", "健康产业"], [60, 88, 58, 48, 90, 80]],
 ];
 
 programs.push(
@@ -324,6 +344,353 @@ programs.push(
   ),
 );
 
+const chinaRows = [
+  {
+    id: "tongji-german-polisci",
+    title: "德语-政治学与行政学",
+    schools: "同济大学",
+    discipline: "law",
+    workload: "high",
+    budget: "low",
+    difficulty: "high",
+    credential: "双学士学位",
+    sourceName: "同济大学2026年招生简章",
+    sourceUrl: "",
+    tags: ["德语+专业", "外语保送生", "政治与国际关系"],
+    scores: { workload: 60, value: 86, difficulty: 58, cost: 90, career: 78, fit: 84 },
+    type: "undergraduate-dual",
+    region: "china",
+    duration: "4y",
+    sourceKind: "admission",
+  },
+  {
+    id: "tongji-german-law",
+    title: "德语-法学",
+    schools: "同济大学",
+    discipline: "law",
+    workload: "high",
+    budget: "low",
+    difficulty: "high",
+    credential: "双学士学位",
+    sourceName: "同济大学2026年招生简章",
+    sourceUrl: "",
+    tags: ["德语+专业", "外语保送生", "法学"],
+    scores: { workload: 58, value: 88, difficulty: 58, cost: 90, career: 82, fit: 82 },
+    type: "undergraduate-dual",
+    region: "china",
+    duration: "4y",
+    sourceKind: "admission",
+  },
+  {
+    id: "bfsu-german-bigdata",
+    title: "德语+大数据管理与应用",
+    schools: "北京外国语大学",
+    discipline: "management",
+    workload: "high",
+    budget: "low",
+    difficulty: "high",
+    credential: "双学士学位",
+    sourceName: "北外2025年项目获批新闻",
+    sourceUrl: "",
+    tags: ["德语+数据", "2025新设", "高考招生预计"],
+    scores: { workload: 62, value: 84, difficulty: 62, cost: 88, career: 86, fit: 82 },
+    type: "undergraduate-dual",
+    region: "china",
+    duration: "4y",
+    sourceKind: "research",
+  },
+  {
+    id: "bit-german-vehicle",
+    title: "德语+车辆工程",
+    schools: "北京理工大学",
+    discipline: "engineering",
+    workload: "high",
+    budget: "low",
+    difficulty: "high",
+    credential: "双学士学位复合型人才培养",
+    sourceName: "北理工外国语学院专业介绍",
+    sourceUrl: "",
+    tags: ["德语+工程", "车辆工程", "招生简章待查"],
+    scores: { workload: 56, value: 84, difficulty: 60, cost: 88, career: 86, fit: 78 },
+    type: "undergraduate-dual",
+    region: "china",
+    duration: "4y",
+    sourceKind: "college",
+  },
+  {
+    id: "zju-german-optoelectronic",
+    title: "德语-光电信息科学与工程",
+    schools: "浙江大学",
+    discipline: "engineering",
+    workload: "high",
+    budget: "low",
+    difficulty: "high",
+    credential: "双学士学位（2024年新设）",
+    sourceName: "浙大德国学研究所介绍",
+    sourceUrl: "",
+    tags: ["德语+工学", "光电信息", "面向外语类保送生"],
+    scores: { workload: 56, value: 90, difficulty: 52, cost: 90, career: 88, fit: 80 },
+    type: "undergraduate-dual",
+    region: "china",
+    duration: "4y",
+    sourceKind: "college",
+  },
+  {
+    id: "shisu-german-economics",
+    title: "德语+经济学",
+    schools: "上海外国语大学 × 德国拜罗伊特大学",
+    discipline: "economics",
+    workload: "high",
+    budget: "medium",
+    difficulty: "medium",
+    credential: "中外合作办学双本科/双学位",
+    sourceName: "上外招生介绍",
+    sourceUrl: "",
+    tags: ["德语+经济", "中外合作", "大二校内选拔"],
+    scores: { workload: 62, value: 86, difficulty: 66, cost: 70, career: 84, fit: 84 },
+    type: "undergraduate-dual",
+    region: "china",
+    duration: "4y",
+    sourceKind: "admission",
+  },
+  {
+    id: "shisu-german-business",
+    title: "德语+工商管理",
+    schools: "上海外国语大学",
+    discipline: "management",
+    workload: "high",
+    budget: "low",
+    difficulty: "medium",
+    credential: "双学士学位复合型人才培养",
+    sourceName: "上外招生介绍",
+    sourceUrl: "",
+    tags: ["德语+管理", "校内选拔", "大一下学期"],
+    scores: { workload: 64, value: 82, difficulty: 68, cost: 86, career: 82, fit: 80 },
+    type: "undergraduate-dual",
+    region: "china",
+    duration: "4y",
+    sourceKind: "admission",
+  },
+  {
+    id: "gdufs-german-trade",
+    title: "德语+国际经济与贸易",
+    schools: "广东外语外贸大学",
+    discipline: "economics",
+    workload: "high",
+    budget: "low",
+    difficulty: "medium",
+    credential: "双学士学位",
+    sourceName: "广外西方语言文化学院介绍",
+    sourceUrl: "",
+    tags: ["德语+国贸", "招生简章待查", "外语经贸"],
+    scores: { workload: 66, value: 80, difficulty: 70, cost: 88, career: 84, fit: 80 },
+    type: "undergraduate-dual",
+    region: "china",
+    duration: "4y",
+    sourceKind: "college",
+  },
+  {
+    id: "nju-german-law",
+    title: "德语（德语法学实验班）",
+    schools: "南京大学",
+    discipline: "law",
+    workload: "high",
+    budget: "low",
+    difficulty: "high",
+    credential: "文学和法学双学士学位",
+    sourceName: "南京大学培养方案截图",
+    sourceUrl: "",
+    tags: ["德语+法学", "174学分", "法学院协同"],
+    scores: { workload: 54, value: 90, difficulty: 52, cost: 90, career: 84, fit: 86 },
+    type: "undergraduate-dual",
+    region: "china",
+    duration: "4y",
+    sourceKind: "research",
+  },
+  {
+    id: "nju-gottingen-law-master",
+    title: "中德法学双硕士项目",
+    schools: "南京大学 × 哥廷根大学",
+    discipline: "law",
+    workload: "high",
+    budget: "medium",
+    difficulty: "high",
+    credential: "中德法学硕士双学位",
+    sourceName: "南京大学培养方案截图",
+    sourceUrl: "",
+    tags: ["法学", "中德所", "CSC创新型人才"],
+    scores: { workload: 58, value: 88, difficulty: 56, cost: 72, career: 82, fit: 82 },
+    type: "joint-master",
+    region: "china",
+    duration: "2y",
+    sourceKind: "research",
+  },
+  {
+    id: "nju-german-law-experiment",
+    title: "德语与法学双学士学位复合型人才培养项目",
+    schools: "南京大学",
+    discipline: "law",
+    workload: "high",
+    budget: "low",
+    difficulty: "high",
+    credential: "双学士学位复合型人才培养",
+    sourceName: "项目汇总截图",
+    sourceUrl: "",
+    tags: ["德语法学实验班", "2022开始招生", "约30人"],
+    scores: { workload: 56, value: 88, difficulty: 54, cost: 90, career: 84, fit: 84 },
+    type: "undergraduate-dual",
+    region: "china",
+    duration: "4y",
+    sourceKind: "research",
+  },
+  {
+    id: "ruc-foreign-law-german",
+    title: "涉外法治实验班（含德语方向）",
+    schools: "中国人民大学",
+    discipline: "law",
+    workload: "high",
+    budget: "low",
+    difficulty: "high",
+    credential: "双学位项目",
+    sourceName: "项目汇总截图",
+    sourceUrl: "",
+    tags: ["外语+法学", "2023获批升级", "外语保送生"],
+    scores: { workload: 58, value: 90, difficulty: 52, cost: 90, career: 86, fit: 82 },
+    type: "undergraduate-dual",
+    region: "china",
+    duration: "4y",
+    sourceKind: "research",
+  },
+  {
+    id: "ruc-foreign-language-dual-history",
+    title: "外语类专业双学位培养（历史项目）",
+    schools: "中国人民大学",
+    discipline: "interdisciplinary",
+    workload: "high",
+    budget: "low",
+    difficulty: "medium",
+    credential: "第二学士学位/五年制",
+    sourceName: "项目汇总截图",
+    sourceUrl: "",
+    tags: ["工商管理", "知识产权法", "国际政治"],
+    scores: { workload: 62, value: 80, difficulty: 66, cost: 88, career: 80, fit: 78 },
+    type: "undergraduate-dual",
+    region: "china",
+    duration: "5y",
+    sourceKind: "research",
+  },
+  {
+    id: "shisu-bayreuth-german-econ",
+    title: "德语 + 经济学双学士",
+    schools: "上海外国语大学 × 德国拜罗伊特大学",
+    discipline: "economics",
+    workload: "high",
+    budget: "medium",
+    difficulty: "medium",
+    credential: "德语 + 经济学双学士",
+    sourceName: "项目类型汇总截图",
+    sourceUrl: "",
+    tags: ["中外合作办学", "赴德交流7-8个月", "两校学分要求"],
+    scores: { workload: 62, value: 86, difficulty: 66, cost: 70, career: 84, fit: 84 },
+    type: "undergraduate-dual",
+    region: "china",
+    duration: "4y",
+    sourceKind: "research",
+  },
+  {
+    id: "hfut-german-2plus3",
+    title: "德语（经贸方向）2+3 双学士",
+    schools: "合肥大学 × 德国奥登堡-东弗里斯兰-威廉港应用科学大学",
+    discipline: "economics",
+    workload: "high",
+    budget: "medium",
+    difficulty: "medium",
+    credential: "中德两校文学学士学位",
+    sourceName: "项目类型汇总截图",
+    sourceUrl: "",
+    tags: ["2+3", "德国学习三年", "应用科学大学"],
+    scores: { workload: 58, value: 82, difficulty: 64, cost: 66, career: 80, fit: 80 },
+    type: "undergraduate-dual",
+    region: "china",
+    duration: "3plus2",
+    sourceKind: "research",
+  },
+  {
+    id: "tongji-braunschweig-engineering",
+    title: "机械工程/汽车工程/经济学双硕士",
+    schools: "同济大学 × 布伦瑞克工业大学",
+    discipline: "engineering",
+    workload: "high",
+    budget: "medium",
+    difficulty: "high",
+    credential: "机械工程/汽车工程/经济学双硕士",
+    sourceName: "项目类型汇总截图",
+    sourceUrl: "",
+    tags: ["德国高校国际合作", "中德两校学习", "双硕士"],
+    scores: { workload: 56, value: 88, difficulty: 58, cost: 68, career: 88, fit: 78 },
+    type: "joint-master",
+    region: "china",
+    duration: "2y",
+    sourceKind: "research",
+  },
+  {
+    id: "munster-netherlands-business",
+    title: "国际商务管理双学士",
+    schools: "明斯特大学 × 荷兰特文特大学",
+    discipline: "management",
+    workload: "high",
+    budget: "high",
+    difficulty: "medium",
+    credential: "国际商务管理双学士",
+    sourceName: "项目类型汇总截图",
+    sourceUrl: "",
+    tags: ["德国高校合作案例", "三年内两个学士学位", "欧洲项目"],
+    scores: { workload: 62, value: 82, difficulty: 66, cost: 58, career: 82, fit: 78 },
+    type: "undergraduate-dual",
+    region: "europe",
+    duration: "flex",
+    sourceKind: "research",
+  },
+  {
+    id: "munster-icn-business",
+    title: "工商管理双学士/双硕士",
+    schools: "明斯特大学 × 法国ICN商学院",
+    discipline: "management",
+    workload: "high",
+    budget: "high",
+    difficulty: "medium",
+    credential: "工商管理双学士/双硕士",
+    sourceName: "项目类型汇总截图",
+    sourceUrl: "",
+    tags: ["法国学习", "B2要求", "欧洲商科"],
+    scores: { workload: 62, value: 82, difficulty: 66, cost: 58, career: 84, fit: 78 },
+    type: "professional-dual",
+    region: "europe",
+    duration: "flex",
+    sourceKind: "research",
+  },
+  {
+    id: "connecticut-german-finance",
+    title: "德国研究 + 金融管理",
+    schools: "美国康涅狄格大学",
+    discipline: "economics",
+    workload: "high",
+    budget: "high",
+    difficulty: "medium",
+    credential: "文学学士（德国研究）+ 理学学士（金融管理）",
+    sourceName: "项目类型汇总截图",
+    sourceUrl: "",
+    tags: ["五年制", "德国学年", "实习"],
+    scores: { workload: 62, value: 82, difficulty: 66, cost: 52, career: 82, fit: 78 },
+    type: "undergraduate-dual",
+    region: "usa",
+    duration: "5y",
+    sourceKind: "research",
+  },
+];
+
+programs.push(...chinaRows);
+
 const metaLabels = {
   type: {
     "undergraduate-dual": "本科双证",
@@ -351,6 +718,7 @@ const metaLabels = {
     official: "学校官网",
     college: "学院页",
     admission: "招生页",
+    research: "资料整理",
   },
 };
 
@@ -383,6 +751,7 @@ function inferDuration(program) {
 }
 
 function inferSourceKind(program) {
+  if (!program.sourceUrl) return "research";
   const text = program.sourceUrl.toLowerCase();
   if (/admission|apply|oam|undergraduate-programmes/.test(text)) return "admission";
   if (/academics|degree|program|education|school|college|sph|law|medicine|sloan|haas|sipa|som/.test(text)) return "college";
@@ -390,27 +759,18 @@ function inferSourceKind(program) {
 }
 
 programs.forEach((program) => {
-  program.type = inferType(program);
-  program.region = inferRegion(program);
-  program.duration = inferDuration(program);
-  program.sourceKind = inferSourceKind(program);
+  program.type = program.type || inferType(program);
+  program.region = program.region || inferRegion(program);
+  program.duration = program.duration || inferDuration(program);
+  program.sourceKind = program.sourceKind || inferSourceKind(program);
 });
 
 const state = {
-  filters: {
-    discipline: "all",
-    workload: "all",
-    budget: "all",
-    difficulty: "all",
-    type: "all",
-    region: "all",
-    duration: "all",
-    sourceKind: "all",
-  },
-  weights: Object.fromEntries(dimensions.map((item) => [item.key, item.weight])),
+  filters: defaultFilters(),
+  weights: defaultWeights(),
   sort: "match",
   view: "table",
-  compare: ["duke-kunshan-undergrad", "mit-lgo", "nyu-jd-mpa"],
+  compare: [...defaultCompare],
 };
 
 const careerMajors = [
@@ -711,6 +1071,14 @@ function metaText(program, key) {
   return metaLabels[key][program[key]] || program[key];
 }
 
+function sourceAction(program) {
+  if (program.sourceUrl) {
+    return `<a href="${program.sourceUrl}" target="_blank" rel="noreferrer">官网</a>`;
+  }
+
+  return `<span class="source-note" title="${program.sourceName}">资料</span>`;
+}
+
 function renderCards(programsToRender) {
   return programsToRender
     .map((program, index) => {
@@ -743,7 +1111,7 @@ function renderCards(programsToRender) {
               ${selected ? "已加入" : "加入对比"}
             </button>
             <button type="button" data-ask="${program.id}">分析项目</button>
-            <a href="${program.sourceUrl}" target="_blank" rel="noreferrer">官网</a>
+            ${sourceAction(program)}
           </div>
         </article>
       `;
@@ -782,7 +1150,7 @@ function renderTable(programsToRender) {
                 <button type="button" class="${selected ? "selected" : ""}" data-toggle-compare="${program.id}">
                   ${selected ? "已加入" : "对比"}
                 </button>
-                <a href="${program.sourceUrl}" target="_blank" rel="noreferrer">官网</a>
+                ${sourceAction(program)}
               </div>
             </article>
           `;
@@ -983,6 +1351,28 @@ function syncFilterControls() {
   });
 }
 
+function resetFilters() {
+  state.filters = defaultFilters();
+  syncFilterControls();
+  renderPrograms();
+  showToast("筛选已取消");
+}
+
+function resetPersona() {
+  $("#personaForm").reset();
+  state.weights = defaultWeights();
+  state.filters = defaultFilters();
+  state.compare = [...defaultCompare];
+  careerState.major = "cs";
+  careerState.field = "medicine";
+  renderWeights();
+  syncFilterControls();
+  renderCareerSwitches();
+  renderCareerGraph();
+  renderPrograms();
+  showToast("画像已取消，推荐权重已恢复默认");
+}
+
 function applyPersona(formData) {
   const priority = formData.get("priority");
   const major = formData.get("major");
@@ -1029,6 +1419,9 @@ $("#personaForm").addEventListener("submit", (event) => {
   applyPersona(new FormData(event.currentTarget));
   showToast("已根据你的画像更新权重和推荐清单");
 });
+
+$("#resetFilters").addEventListener("click", resetFilters);
+$("#resetPersona").addEventListener("click", resetPersona);
 
 $("#majorSwitcher").addEventListener("click", (event) => {
   const button = event.target.closest("button[data-major]");
@@ -1111,10 +1504,7 @@ $("#loadSample").addEventListener("click", () => {
     sourceKind: "all",
   };
   state.compare = ["duke-kunshan-undergrad", "nyu-shanghai-undergrad", "nus-double-degree"];
-  Object.entries(state.filters).forEach(([key, value]) => {
-    const control = $(`#filters [name="${key}"]`);
-    if (control) control.value = value;
-  });
+  syncFilterControls();
   renderPrograms();
   document.querySelector("#programs").scrollIntoView({ behavior: "smooth" });
 });

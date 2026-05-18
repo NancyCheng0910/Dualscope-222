@@ -732,10 +732,24 @@ h1 span {
   font-weight: 800;
 }
 
-.persona-button {
+.form-actions {
+  display: grid;
+  gap: 8px;
+  align-self: stretch;
+}
+
+.persona-button,
+.apply-button {
   align-self: stretch;
   min-height: 0;
   padding: 0 18px;
+}
+
+.reset-button {
+  min-height: 42px;
+  padding: 0 18px;
+  border-color: rgba(7, 24, 27, 0.16);
+  box-shadow: none;
 }
 
 .filter-board {
@@ -755,7 +769,7 @@ input[type="text"] {
   font-weight: 700;
 }
 
-.apply-button {
+.filter-actions .apply-button {
   align-self: stretch;
   min-height: 52px;
   padding: 0 24px;
@@ -946,7 +960,8 @@ input[type="range"] {
   color: #fff;
 }
 
-.table-actions a {
+.table-actions a,
+.table-actions .source-note {
   color: var(--teal-dark);
   font-weight: 900;
 }
@@ -1065,7 +1080,8 @@ input[type="range"] {
   color: white;
 }
 
-.card-actions a {
+.card-actions a,
+.card-actions .source-note {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1074,6 +1090,10 @@ input[type="range"] {
   color: var(--teal-dark);
   font-size: 0.82rem;
   font-weight: 900;
+}
+
+.source-note {
+  cursor: help;
 }
 
 .advisor {
