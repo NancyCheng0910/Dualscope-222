@@ -18,7 +18,6 @@ function defaultFilters() {
     type: "all",
     region: "all",
     duration: "all",
-    sourceKind: "all",
   };
 }
 
@@ -1401,7 +1400,6 @@ function applyPersona(formData) {
     type: priority === "research" ? "bsms" : "all",
     region: globalPath === "yes" ? "all" : "china",
     duration: "all",
-    sourceKind: "all",
   };
 
   careerState.major = major;
@@ -1501,7 +1499,6 @@ $("#loadSample").addEventListener("click", () => {
     type: "undergraduate-dual",
     region: "all",
     duration: "all",
-    sourceKind: "all",
   };
   state.compare = ["duke-kunshan-undergrad", "nyu-shanghai-undergrad", "nus-double-degree"];
   syncFilterControls();
