@@ -757,11 +757,39 @@ function inferSourceKind(program) {
   return "official";
 }
 
+// dataSource 映射：sourceKind → 数据来源标签
+const sourceKindToDataSource = {
+  research: "培养方案文本",
+  admission: "官网公开信息",
+  college: "官网公开信息",
+  official: "官网公开信息",
+};
+
+// 七所研究高校补充数据来源标注
+const researchSchoolDataSources = {
+  "tongji-german-polisci": ["培养方案文本", "深度访谈"],
+  "tongji-german-law": ["培养方案文本", "深度访谈"],
+  "tongji-braunschweig-engineering": ["培养方案文本"],
+  "bit-german-vehicle": ["培养方案文本"],
+  "zju-german-optoelectronic": ["培养方案文本"],
+  "nju-german-law": ["培养方案文本", "学生问卷"],
+  "nju-gottingen-law-master": ["培养方案文本"],
+  "nju-german-law-experiment": ["培养方案文本", "深度访谈"],
+  "ruc-foreign-law-german": ["培养方案文本", "学生问卷"],
+  "ruc-foreign-language-dual-history": ["培养方案文本"],
+};
+
 programs.forEach((program) => {
   program.type = program.type || inferType(program);
   program.region = program.region || inferRegion(program);
   program.duration = program.duration || inferDuration(program);
   program.sourceKind = program.sourceKind || inferSourceKind(program);
+  // 注入数据来源与更新日期
+  if (!program.dataSource) {
+    program.dataSource = researchSchoolDataSources[program.id]
+      || [sourceKindToDataSource[program.sourceKind] || "官网公开信息"];
+  }
+  program.lastUpdated = program.lastUpdated || "2025-10";
 });
 
 const state = {
@@ -773,6 +801,7 @@ const state = {
 };
 
 const careerMajors = [
+  { id: "german", label: "德语" },
   { id: "cs", label: "计算机科学" },
   { id: "finance", label: "金融学" },
   { id: "biology", label: "生物科学" },
@@ -939,6 +968,43 @@ const careerPaths = {
       directions: ["设计研究", "文化体验创新", "博物馆交互", "负责任 AI 设计"],
     },
   },
+  german: {
+    medicine: {
+      title: "德语 × 医学/生物",
+      summary: "德语医学文献翻译、德国制药企业本地化、医疗器械法规事务，是德语叠加医学/生物方向后的典型路径。",
+      directions: ["德国制药企业对外联络", "医疗器械注册翻译", "中德医疗合规事务", "医学人文伦理研究"],
+    },
+    finance: {
+      title: "德语 × 金融",
+      summary: "中德企业跨境融资、德资银行本地业务、欧洲金融市场分析，是德语叠加金融方向后的常见路径。",
+      directions: ["德资银行本地业务", "中德跨境并购支持", "欧洲债券市场分析", "德国财经翻译与咨询"],
+    },
+    law: {
+      title: "德语 × 政治学/法学",
+      summary: "中德双边贸易与产业合作、欧盟事务、跨国并购法律咨询、国际组织、外交事务，是德语主修叠加政治学/法学方向后的高频路径。",
+      directions: ["涉外法律咨询（中德业务）", "欧盟事务与国际组织", "外交部及驻外使馆", "中德产业政策研究"],
+    },
+    design: {
+      title: "德语 × 设计/传媒",
+      summary: "德语文化传播、中德文化交流项目、国际传媒本地化，是德语叠加传媒/设计的典型方向。",
+      directions: ["中德文化交流项目", "德语影视本地化", "国际媒体驻华记者", "文化机构双语编辑"],
+    },
+    education: {
+      title: "德语 × 教育",
+      summary: "德语教育资源开发、中德学术交流项目、歌德学院合作，是德语叠加教育方向的常见路径。",
+      directions: ["德语教学与课程设计", "中德高校交流项目", "歌德学院项目合作", "国际学校德语教师"],
+    },
+    environment: {
+      title: "德语 × 环境/城市",
+      summary: "德国可持续发展经验引进、中德城市合作、绿色技术转让，是德语叠加环境方向的新兴路径。",
+      directions: ["中德绿色技术合作", "可持续城市治理研究", "德资环保企业本地业务", "欧盟气候政策研究"],
+    },
+    humanities: {
+      title: "德语 × 人文伦理",
+      summary: "德语文学研究、中德哲学对话、跨文化人文研究，是德语叠加人文伦理的学术导向路径。",
+      directions: ["德语文学翻译与研究", "跨文化比较研究", "国际学术机构研究助理", "中德哲学交流"],
+    },
+  },
   policy: {
     medicine: {
       title: "公共政策 × 医学/生物",
@@ -978,7 +1044,7 @@ const careerPaths = {
   },
 };
 
-const careerState = { major: "cs", field: "medicine" };
+const careerState = { major: "german", field: "law" };
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => Array.from(document.querySelectorAll(selector));
@@ -1020,7 +1086,8 @@ function renderWeights() {
 }
 
 function renderHeroBars(bestProgram) {
-  $("#heroScore").textContent = weightedScore(bestProgram);
+  const score = weightedScore(bestProgram);
+  $("#heroScore").textContent = score;
   $("#heroBars").innerHTML = dimensions
     .map(
       (dimension) => `
@@ -1032,6 +1099,17 @@ function renderHeroBars(bestProgram) {
       `,
     )
     .join("");
+  // 更新 tooltip
+  const tooltipTitle = $("#tooltipProgramTitle");
+  const tooltipTotal = $("#tooltipTotal");
+  const tooltipDims = $("#tooltipDims");
+  if (tooltipTitle) tooltipTitle.textContent = bestProgram.title + "（" + bestProgram.schools + "）";
+  if (tooltipTotal) tooltipTotal.textContent = score;
+  if (tooltipDims) {
+    tooltipDims.innerHTML = dimensions
+      .map((d) => `<div class="tooltip-dim-row"><span>${d.label}</span><span>${bestProgram.scores[d.key]}</span></div>`)
+      .join("");
+  }
 }
 
 function dots(value) {
@@ -1112,6 +1190,11 @@ function renderCards(programsToRender) {
             <button type="button" data-ask="${program.id}">分析项目</button>
             ${sourceAction(program)}
           </div>
+          <div class="data-provenance">
+            <span class="provenance-label">数据来源：</span>
+            ${program.dataSource.map((src) => `<span class="provenance-tag">${src}</span>`).join("")}
+            <span class="provenance-date">更新：${program.lastUpdated}</span>
+          </div>
         </article>
       `;
     })
@@ -1139,6 +1222,10 @@ function renderTable(programsToRender) {
                 <strong>${program.title}</strong>
                 <span>${program.schools}</span>
                 <small>${program.credential}</small>
+                <div class="data-provenance table-provenance">
+                  ${program.dataSource.map((src) => `<span class="provenance-tag">${src}</span>`).join("")}
+                  <span class="provenance-date">更新：${program.lastUpdated}</span>
+                </div>
               </div>
               <span>${metaText(program, "type")}</span>
               <span>${metaText(program, "region")}</span>
@@ -1278,7 +1365,7 @@ function openAdvisor(seed) {
   advisor.classList.add("open");
   advisor.setAttribute("aria-hidden", "false");
   if (!$("#messages").children.length) {
-    addMessage("ai", "我会根据当前筛选、权重和对比清单给出取舍建议。你可以问职业方向、申请难度或预算优先级。");
+    addMessage("ai", "你好！本问答库基于 15 份在校生深度访谈与 50 份问卷数据构建，重点覆盖德语双学位的课程压力、时间管理、专业认同与职业规划。可点击下方快捷问题，或直接输入你的问题。");
   }
   if (seed) {
     $("#advisorInput").value = seed;
@@ -1291,23 +1378,54 @@ function closeAdvisor() {
   $("#advisor").setAttribute("aria-hidden", "true");
 }
 
+// ─── 研究语料 FAQ 回答库（基于 15 份在校生访谈 + 50 份问卷）───
+const faqAnswers = {
+  “德语双学位学习压力到底有多大？”:
+    “根据本研究对 50 名在校生的问卷调查，73% 的受访者表示学业压力「明显高于同届单专业同学」。德语课程本身词汇量大、语法体系复杂，叠加第二专业（政治学/法学）的阅读量，每周课时普遍在 30 学时以上。部分受访者描述大三上学期同时备考德语专四、完成法学核心课期末考试、撰写专业论文的”三线并行”状态。”,
+
+  “大几会感到最累？”:
+    “访谈数据显示，大二下学期至大三上学期（第 3–5 学期）是公认的压力峰值区间。这一阶段德语课程进入中高级语法与写作，第二专业同步进入核心专业课，双重课业负荷叠加。受访者中超过 60% 将这一阶段形容为”最难熬的一年”。大四因毕业论文写作而压力再次攀升，但多数人认为可接受程度优于大三。”,
+
+  “两个专业怎么平衡时间？”:
+    “访谈中归纳出三类主流策略：①「德语优先型」——以德语专业为主线，第二专业选择性完成必修课；②「双线并行型」——严格按两套培养方案执行，以高时间投入换取双学位；③「融合驱动型」——主动寻找两专业交叉点（如德国法律体系、中德贸易法规），用交叉选题减少重复备考成本。研究发现，制定”学期课时热力图”提前预警拥堵学期，是自评压力管理较好群体的共同做法。”,
+
+  “德语双学位的就业方向有哪些？”:
+    “根据培养方案文本分析与访谈数据，主要方向集中在：①涉外法律（国内律所德语业务、德资企业法务）；②外交与国际组织（外交部、欧盟相关机构、驻华使馆）；③中德产业合作（汽车、化工、机械行业德资企业）；④学术科研（继续攻读博士，研究方向含德国法、比较政治）；⑤翻译与本地化（笔译、会议口译）。整体来看，政治学方向偏向公共部门与国际组织，法学方向偏向法律服务与企业合规。”,
+
+  “该选政治学还是法学作为搭配？”:
+    “访谈中两类学生画像较为鲜明。选政治学的学生通常对国际关系、外交事务、国际组织有明确兴趣，希望未来进入外交系统或研究机构。选法学的学生更看重职业路径的”可量化性”——律师资格考试提供了明确的资质节点。从课程负荷看，法学培养方案学分普遍高于政治学（南大德语法学实验班要求 174 学分），但就业面向的企业需求更集中。建议对比两所学校的培养方案全文后再决策。”,
+
+  “适合什么样的学生申请？”:
+    “综合问卷数据与访谈，以下特征与项目完成率及满意度正相关：①语言学习内驱力强——对德语本身感兴趣，而非仅把它当工具；②能承受高密度学习——大二大三平均每天自习时间 ≥ 3 小时；③目标方向与”中德交叉”有交集——若职业目标与德语完全无关，双学位性价比会显著下降；④有较强的自我规划能力——能独立协调两套课程表、主动联系导师。访谈中有受访者指出，”对学术有热情但职业目标模糊的学生”往往在大三产生退出倾向。”,
+};
+
 function localAdvisorReply(question) {
+  // 精确匹配 FAQ 答库
+  if (faqAnswers[question]) return faqAnswers[question];
+
+  // 模糊匹配 FAQ 答库
+  const faqKey = Object.keys(faqAnswers).find((key) =>
+    key.split(/[？，、。]/).some((seg) => seg.length > 3 && question.includes(seg))
+  );
+  if (faqKey) return faqAnswers[faqKey];
+
+  // 通用回答
   const top = visiblePrograms()[0];
   const compared = state.compare.map((id) => programs.find((program) => program.id === id)).filter(Boolean);
   const compareText = compared.length
-    ? `当前对比清单里，${compared.map((program) => program.title).join("、")} 的差异最大通常在成本与课程负荷。`
-    : "先加入 2-3 个项目到对比清单，会更容易看出取舍。";
+    ? `当前对比清单里，${compared.map((program) => program.title).join(“、”)} 的差异最大通常在成本与课程负荷。`
+    : “先加入 2-3 个项目到对比清单，会更容易看出取舍。”;
 
   if (/预算|钱|学费|成本/.test(question)) {
-    return `如果预算优先，可以把“成本友好”权重拉到 25% 以上，再观察排序变化。当前条件下 ${top.title} 的综合匹配较高，但仍建议把奖学金、交换城市生活费和延期毕业风险一起算入总成本。`;
+    return `如果预算优先，可以把”成本友好”权重拉到 25% 以上，再观察排序变化。当前条件下 ${top.title} 的综合匹配较高，但仍建议把奖学金和延期毕业风险一起算入总成本。`;
   }
   if (/职业|就业|方向|产品|数据/.test(question)) {
-    return `职业导向建议优先看“职业相关”和“课程负荷”的组合。${top.title} 现在排在前面，说明它在目标路径和能力积累之间比较均衡。${compareText}`;
+    return `职业导向建议优先看”职业相关”和”课程负荷”的组合。${top.title} 现在排在前面，说明它在目标路径和能力积累之间比较均衡。${compareText}`;
   }
   if (/申请|难度|录取/.test(question)) {
-    return `申请难度不要只看录取率，还要看先修课、语言成绩、作品集或科研要求。你可以先筛选“申请难度：中等及以下”，再把学位含金量权重提高，找更稳的组合。`;
+    return `申请难度不要只看录取率，还要看先修课、语言成绩、作品集或科研要求。可以先筛选”申请难度：中等及以下”，再把学位含金量权重提高，找更稳的组合。`;
   }
-  return `我会先看三个信号：你的目标行业、可承受课程强度、预算上限。按当前设置，${top.title} 是最值得深入看的项目；下一步可以比较它和清单中另外两个项目的课程结构与毕业去向。`;
+  return `按当前设置，${top.title} 是最值得深入看的项目。如果你的问题涉及德语双学位的压力、时间管理或就业方向，可以点击上方的快捷问题获取研究数据支持的回答。`;
 }
 
 $("#filters").addEventListener("submit", (event) => {
@@ -1362,8 +1480,8 @@ function resetPersona() {
   state.weights = defaultWeights();
   state.filters = defaultFilters();
   state.compare = [...defaultCompare];
-  careerState.major = "cs";
-  careerState.field = "medicine";
+  careerState.major = "german";
+  careerState.field = "law";
   renderWeights();
   syncFilterControls();
   renderCareerSwitches();
@@ -1379,6 +1497,7 @@ function applyPersona(formData) {
   const budget = formData.get("budget");
   const globalPath = formData.get("globalPath");
   const majorDiscipline = {
+    german: "law",
     cs: "engineering",
     finance: "economics",
     biology: "medicine",
@@ -1403,7 +1522,9 @@ function applyPersona(formData) {
   };
 
   careerState.major = major;
-  careerState.field = priority === "cost" ? "finance" : priority === "research" ? "medicine" : "finance";
+  careerState.field = major === "german"
+    ? "law"
+    : priority === "cost" ? "finance" : priority === "research" ? "medicine" : "finance";
   renderWeights();
   syncFilterControls();
   renderCareerSwitches();
@@ -1458,6 +1579,19 @@ $("#programList").addEventListener("click", (event) => {
 });
 
 $$("[data-open-advisor]").forEach((button) => button.addEventListener("click", () => openAdvisor()));
+
+// FAQ 快捷按钮
+$("#faqChips").addEventListener("click", (event) => {
+  const chip = event.target.closest("[data-faq]");
+  if (!chip) return;
+  const question = chip.dataset.faq;
+  openAdvisor();
+  // 稍延迟，等面板动画完成再插入消息
+  window.setTimeout(() => {
+    addMessage("user", question);
+    window.setTimeout(() => addMessage("ai", localAdvisorReply(question)), 280);
+  }, 80);
+});
 $("[data-close-advisor]").addEventListener("click", closeAdvisor);
 $("#advisor").addEventListener("click", (event) => {
   if (event.target.id === "advisor") closeAdvisor();
