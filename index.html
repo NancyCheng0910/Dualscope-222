@@ -22,7 +22,7 @@
         <a href="#career-map">职业图谱</a>
         <a href="#method">评估维度</a>
         <a href="#compare">对比清单</a>
-        <button class="nav-button" type="button" data-open-advisor>AI顾问</button>
+        <button class="nav-button" type="button" data-open-advisor>DualQA</button>
       </nav>
       <button class="save-button" type="button" id="saveSnapshot">
         <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -52,7 +52,11 @@
             </li>
             <li>
               <strong id="projectTotal">--</strong>
-              <span>官网项目索引</span>
+              <span>收录项目</span>
+            </li>
+            <li>
+              <strong>7</strong>
+              <span>所高校研究覆盖</span>
             </li>
             <li>
               <strong>实时</strong>
@@ -69,9 +73,14 @@
               <button class="quiet-button" type="button" id="explainScore">如何计算?</button>
             </div>
             <div class="score-grid">
-              <div class="score-ring" aria-label="当前最高匹配分 86">
+              <div class="score-ring" aria-label="当前最高匹配分" id="heroScoreRing">
                 <span id="heroScore">86</span>
                 <small>最高匹配</small>
+                <div class="score-ring-tooltip" id="heroScoreTooltip">
+                  <div class="tooltip-title" id="tooltipProgramTitle">示例：同济大学德语-政治学双学位</div>
+                  <div class="tooltip-score-line">综合匹配度 <strong id="tooltipTotal">86</strong>/100</div>
+                  <div class="tooltip-dims" id="tooltipDims"></div>
+                </div>
               </div>
               <div class="score-bars" id="heroBars"></div>
             </div>
@@ -83,6 +92,27 @@
               <button class="quiet-button" type="button" id="clearCompare">清空</button>
             </div>
             <div class="comparison-table" id="compareTable"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="research-banner" aria-label="研究项目标识">
+        <div class="research-banner-inner">
+          <div class="research-id-line">
+            <span class="research-badge">🎓</span>
+            <span>同济大学大学生创新训练项目 · <strong>X2025657</strong></span>
+          </div>
+          <h2 class="research-title">双专业融合视域下国内德语复合型人才培养现状及优化路径研究</h2>
+          <div class="research-meta-row">
+            <span>指导教师：张克芸</span>
+            <span class="research-meta-sep">|</span>
+            <span>研究周期：2025.04–2026.03</span>
+            <span class="research-meta-sep">|</span>
+            <span>覆盖 7 所高校 · 50 份问卷 · 15 份深度访谈</span>
+          </div>
+          <div class="research-action-row">
+            <a class="research-link" href="/method">查看研究方法 →</a>
+            <a class="research-link" href="/about">团队介绍 →</a>
           </div>
         </div>
       </section>
@@ -104,9 +134,9 @@
           </div>
           <aside class="career-insight" aria-live="polite">
             <span class="small-label">交叉方向</span>
-            <h3 id="pathTitle">计算机科学 × 医学/生物</h3>
+            <h3 id="pathTitle">德语 × 政治学/法学</h3>
             <p id="pathSummary">
-              多模态医疗影像融合、AI 辅助诊断、医学知识图谱和临床数据平台，是计算机主修叠加医学/生物方向后的高频路径。
+              中德双边贸易与产业合作、欧盟事务、跨国并购法律咨询、国际组织、外交事务，是德语主修叠加政治学/法学方向后的高频路径。
             </p>
             <div class="direction-list" id="directionList"></div>
           </aside>
@@ -131,6 +161,7 @@
           <label>
             <span>主修</span>
             <select name="major">
+              <option value="german" selected>德语</option>
               <option value="cs">计算机科学</option>
               <option value="finance">金融学</option>
               <option value="biology">生物科学</option>
@@ -282,7 +313,7 @@
                 <button type="button" data-view="cards">卡片</button>
               </div>
               <button class="button button-secondary compact" type="button" data-open-advisor>
-                询问AI顾问
+                研究语料问答
               </button>
             </div>
             <div class="program-list" id="programList"></div>
@@ -295,23 +326,31 @@
       <div class="advisor-shell">
         <div class="advisor-head">
           <div>
-            <h2 id="advisorTitle">AI顾问</h2>
-            <p>当前为本地模拟，接入 Vercel Serverless 后可替换为真实模型响应。</p>
+            <h2 id="advisorTitle">研究语料问答 · DualQA</h2>
+            <p class="advisor-subtitle">基于 15 份在校生访谈与 50 份问卷数据构建</p>
           </div>
-          <button class="icon-button" type="button" data-close-advisor aria-label="关闭AI顾问">
+          <button class="icon-button" type="button" data-close-advisor aria-label="关闭问答面板">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M7 7l10 10M17 7L7 17" />
             </svg>
           </button>
         </div>
         <div class="messages" id="messages" aria-live="polite"></div>
+        <div class="faq-chips" id="faqChips" aria-label="常见问题快速入口">
+          <button type="button" class="faq-chip" data-faq="德语双学位学习压力到底有多大？">德语双学位学习压力到底有多大？</button>
+          <button type="button" class="faq-chip" data-faq="大几会感到最累？">大几会感到最累？</button>
+          <button type="button" class="faq-chip" data-faq="两个专业怎么平衡时间？">两个专业怎么平衡时间？</button>
+          <button type="button" class="faq-chip" data-faq="德语双学位的就业方向有哪些？">德语双学位的就业方向有哪些？</button>
+          <button type="button" class="faq-chip" data-faq="该选政治学还是法学作为搭配？">该选政治学还是法学作为搭配？</button>
+          <button type="button" class="faq-chip" data-faq="适合什么样的学生申请？">适合什么样的学生申请？</button>
+        </div>
         <form class="advisor-form" id="advisorForm">
           <label class="sr-only" for="advisorInput">输入问题</label>
           <input
             id="advisorInput"
             name="message"
             type="text"
-            placeholder="例如：我想走数据产品方向，应该优先看什么？"
+            placeholder="输入关键词检索访谈语料，或点击上方快捷问题"
             autocomplete="off"
           />
           <button class="icon-button send" type="submit" aria-label="发送">
